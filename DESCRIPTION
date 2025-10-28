@@ -1,18 +1,37 @@
 Package: SwitchClass
 Title: Label-switch classification to map attenuated vs escalated features
-Version: 0.0.1
-Authors@R: c(
-    person("Di","Xiao", email="di.xiao@sydney.edu.au", role=c("aut","cre")),
-    person("Pengyi", "Yang", email = "pengyi.yang@sydney.edu.au", role = c("aut")))
-Description: Implements SwitchClass: dual classifiers with inverted labels to score directional feature alignment.
+Version: 0.1.0
+Description: Tools for reversal/persistence (label-switch) classification,
+    visualization, and pathway enrichment.
+Authors@R: c(person("Di", "Xiao", role = c("aut","cre"), email = "you@example.com"))
 License: MIT + file LICENSE
 Encoding: UTF-8
-Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
-Depends: R (>= 4.2)
-Imports: randomForest, limma, uwot, ggplot2, ggrepel, PhosR, annotate, parallel, stats,
-    org.Mm.eg.db, reactome.db, pheatmap, patchwork, glmnet, stats, utils, graphics, grDevices
-Suggests: testthat (>= 3.0.0), knitr, rmarkdown, pkgdown
-Config/testthat/edition: 3
-VignetteBuilder: knitr
 LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Depends:
+    R (>= 4.2)
+Imports:
+    randomForest,
+    limma,
+    uwot,
+    ggplot2,
+    ggrepel,
+    PhosR,
+    parallel,
+    pheatmap,
+    glmnet,
+    reactome.db,
+    org.Mm.eg.db
+Suggests:
+    msigdbr,
+    dplyr,
+    patchwork,
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
+Remotes:
+    bioc::limma,
+    bioc::PhosR,
+    bioc::reactome.db,
+    bioc::org.Mm.eg.db
