@@ -30,8 +30,3 @@ Suggests:
     knitr,
     rmarkdown
 VignetteBuilder: knitr
-Remotes:
-    bioc::limma,
-    bioc::PhosR,
-    bioc::reactome.db,
-    bioc::org.Mm.eg.db
