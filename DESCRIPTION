@@ -13,18 +13,23 @@ Depends:
     R (>= 4.2)
 Imports:
     randomForest,
+    limma,
     uwot,
     ggplot2,
     ggrepel,
+    PhosR,
     pheatmap,
     glmnet,
     dplyr,
-    msigdbr,
     clusterProfiler,
+    reactome.db,
+    org.Mm.eg.db,
+    org.Hs.eg.db,
     RColorBrewer,
     parallel
 Suggests:
     knitr,
     rmarkdown,
-    patchwork
+    patchwork,
+    msigdbr
 VignetteBuilder: knitr
