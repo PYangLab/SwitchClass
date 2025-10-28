@@ -1,0 +1,165 @@
+## ----warning=FALSE, message=FALSE---------------------------------------------
+library(SwitchClass)
+library(readxl)
+library(stringr)
+library(dplyr)
+library(ggplot2)
+library(ggrepel)
+library(ggpubr)
+library(reshape2)
+library(patchwork)
+
+library(limma)
+library(uwot)
+library(matrixStats)
+library(PhosR)          
+library(randomForest)    
+
+library(msigdbr)
+library(clusterProfiler)
+
+set.seed(1)
+
+## ----fig.width=10, fig.height=5, warning=FALSE, message=FALSE-----------------
+data("CRC_subset")
+
+# log2 transform
+expr.log <- log2(CRC_subset$expr + 1)
+rownames(expr.log) <- rownames(CRC_subset$expr)
+
+# filtering
+group <- CRC_subset$group
+crc.filtered <- selectGrps(expr.log, group, percent = 0.1, n = 3)
+tmp <- apply(crc.filtered, 2, as.numeric)
+rownames(tmp) <- rownames(crc.filtered)
+dim(tmp)
+
+# imputation
+set.seed(123)
+crc.imputed <- tImpute(scImpute(mat=tmp, percent = 0.5, grps = group), m=1.8, s=0.3)
+
+labels <- factor(colnames(crc.imputed), levels = colnames(crc.imputed)[order(group)])
+
+p1 <- plotQC(crc.filtered, panel = "pca", grps=group, labels = labels) +
+  scale_color_manual(values = c(HC = "#5AAF59", Pre = "#D3542D", Post = "#E5CA4E")) +
+  theme_classic() +
+  theme(
+    panel.background = element_blank(),
+    plot.background = element_blank(),
+    panel.border = element_blank(),
+    panel.grid = element_blank()
+  )
+
+p2 <- plotQC(crc.imputed, panel = "pca", grps=group, labels = labels) +
+  scale_color_manual(values = c(HC = "#5AAF59", Pre = "#D3542D", Post = "#E5CA4E")) +
+  theme_classic() +
+  theme(
+    panel.background = element_blank(),
+    plot.background = element_blank(),
+    panel.border = element_blank(),
+    panel.grid = element_blank()
+  )
+
+ggpubr::ggarrange(p1, p2, ncol=2, nrow=1, common.legend = TRUE, legend="right")
+
+## ----warning=FALSE, message=FALSE---------------------------------------------
+
+pp <- group[group %in% c("HC","Pre")]
+design_DE <- model.matrix(~ 0 + pp)
+
+cancer.pp <- crc.imputed[,group %in% c("HC","Pre")]
+fit_DE  <- limma::lmFit(cancer.pp, design_DE)
+
+cont_DE <- limma::makeContrasts(pre_vs_HC = ppPre - ppHC, levels = colnames(design_DE))
+fit_DE2 <- limma::eBayes(limma::contrasts.fit(fit_DE, cont_DE))
+
+DE.table <- limma::topTable(fit_DE2, number = Inf)
+if (nrow(DE.table) == 0L) { warning(sprintf("[%s] no DE results; skip", ct)); next }
+DE.table$gene <- rownames(DE.table)
+DE.table <- DE.table[order(DE.table$adj.P.Val, DE.table$P.Value), ]
+
+DE.genes <- DE.table$gene[which((DE.table[, "adj.P.Val"] < 0.05) & (abs(DE.table[,"logFC"]) > 0.5849625))]
+length(DE.genes)
+
+
+## ----warning=FALSE, message=FALSE---------------------------------------------
+# Use DE genes to focus the classification
+X_bc <- crc.imputed[DE.genes, , drop = FALSE]
+
+# Label schemes: reversal vs persistence
+y_rev <- paste0("c", ifelse(group=="HC",1, ifelse(group=="Pre",2,1)))
+y_per <- paste0("c", ifelse(group=="HC",1, ifelse(group=="Pre",2,2)))
+
+# run SwitchClass
+res <- SwitchClass::label_switch_classify(
+    X_bc, y_reverse = y_rev, y_persist = y_per
+)
+delta <- res$delta
+
+
+## ----warning=FALSE, message=FALSE, fig.width=12, fig.height=4-----------------
+
+res_trip <- umap_triptych_by_delta(
+  X = X_bc,
+  delta = delta,
+  groups = group,
+  top_n = 100,
+  palette = c(HC = "#5AAF59", Pre = "#D3542D", Post = "#E5CA4E")
+)
+
+# View the combined plot
+res_trip$plot
+
+
+
+## ----warning=FALSE, message=FALSE, fig.width=6, fig.height=6------------------
+Hm <- rowMeans2(as.matrix(X_bc[, group == "HC", drop = FALSE]))
+Dm <- rowMeans2(as.matrix(X_bc[, group == "Pre", drop = FALSE]))
+lfc <- Hm - Dm   
+
+out <- plot_delta_vs_fc(delta, lfc, delta_thresh = 0.15, label_top = 8)
+
+df_quad <- out$data  # tidy table with quadrants
+out$plot  # the scatter plot
+
+
+## ----warning=FALSE, message=FALSE, fig.width=10, fig.height=5-----------------
+genes_order <- c("RASA4","RASA4B","SMYD5","MRPS25","BLM","CPSF6","HBB","MSL1")
+palette_crc <- c(HC = "#5AAF59", Pre = "#D3542D", Post = "#E5CA4E")
+group <- factor(group, levels = c("HC","Pre", "Post"))
+
+p <- plot_feature_boxplots(
+  X = X_bc,
+  group = group,
+  features = genes_order,
+  feature_order = genes_order,
+  palette = palette_crc,
+  ncol = 4,
+  title = "Top example genes across groups"
+)
+p
+
+
+## ----fig.width=8, fig.height=5, warning=FALSE, message=FALSE------------------
+plot_heatmap_quadrants(
+  X = crc.imputed,
+  group = group,
+  df_quad = df_quad,
+  cutoff = 0.15,
+  palette_group = c(HC = "#5AAF59", Pre = "#D3542D", Post = "#E5CA4E")
+)
+
+
+## ----fig.width=8, fig.height=6, warning=FALSE, message=FALSE------------------
+out <- enrich_reactome_quadrants(
+  df = df_quad,
+  universe = rownames(discovery.cohort),
+  top_terms = 5
+)
+
+out$plot      # the combined 4-panel barplot
+# out$results$Q1  # raw over-representation table for Q1
+# out$barplot_df  # tidy plotted values
+    
+
+
