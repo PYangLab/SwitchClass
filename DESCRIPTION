@@ -8,7 +8,7 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 Depends:
     R (>= 4.2)
 Imports:
@@ -18,15 +18,22 @@ Imports:
     ggplot2,
     ggrepel,
     PhosR,
-    parallel,
     pheatmap,
     glmnet,
-    reactome.db,
-    org.Mm.eg.db
-Suggests:
-    msigdbr,
     dplyr,
-    patchwork,
+    msigdbr,
+    clusterProfiler,
+    reactome.db,
+    org.Mm.eg.db,
+    org.Hs.eg.db,
+    RColorBrewer,
+    parallel
+Suggests:
     knitr,
-    rmarkdown
+    rmarkdown,
+    patchwork
+Remotes:
+    bioc::limma,
+    bioc::PhosR,
+    bioc::clusterProfiler
 VignetteBuilder: knitr
