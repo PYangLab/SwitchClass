@@ -42,8 +42,10 @@ devtools::install_github("PYangLab/SwitchClass",
 
 ## Vignette 
 
-Please find the links to our vignette below. 
-[Full vignette]
+Please find our vignette: 
+```r
+browseVignettes("SwitchClass")
+```
 
 ## Contact us
 
