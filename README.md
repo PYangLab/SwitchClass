@@ -33,7 +33,12 @@ The package was developed as part of the study **Dissecting Reversal and Persist
 Install the development version from GitHub:
 
 ```r
-# install.packages("devtools")
+# install dependencies if not already installed
+# BiocManager::install("PhosR")
+# BiocManager::install("reactome.db")
+# BiocManager::install("org.Hs.eg.db")
+# BiocManager::install("annotate")
+
 devtools::install_github("PYangLab/SwitchClass",
                          build_vignettes = TRUE,
                          dependencies = TRUE)

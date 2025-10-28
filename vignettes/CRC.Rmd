@@ -31,12 +31,10 @@ library(matrixStats)
 library(PhosR)          
 library(randomForest)    
 
-library(msigdbr)
-library(clusterProfiler)
-library(reactome.db)
-library(org.Mm.eg.db)
-library(org.Hs.eg.db)
 library(annotate)
+library(msigdbr)
+library(reactome.db)
+library(org.Hs.eg.db)
 set.seed(1)
 ```
 
@@ -52,7 +50,7 @@ rownames(expr.log) <- rownames(CRC_subset$expr)
 
 # filtering
 group <- CRC_subset$group
-crc.filtered <- selectGrps(expr.log, group, percent = 0.1, n = 3)
+crc.filtered <- PhosR::selectGrps(expr.log, group, percent = 0.1, n = 3)
 tmp <- apply(crc.filtered, 2, as.numeric)
 rownames(tmp) <- rownames(crc.filtered)
 dim(tmp)

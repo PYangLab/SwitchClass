@@ -23,7 +23,6 @@ Imports:
     dplyr,
     clusterProfiler,
     reactome.db,
-    org.Mm.eg.db,
     org.Hs.eg.db,
     RColorBrewer,
     parallel
