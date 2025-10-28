@@ -1,4 +1,20 @@
-## ----warning=FALSE, message=FALSE---------------------------------------------
+---
+title: "CRC"
+author: "Di Xiao"
+date: "2025-10-13"
+output:
+  rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{CRC}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+This vignette demonstrates the SwitchClass workflow using a colorectal cancer (CRC) plasma proteomics dataset. It illustrates how to preprocess the data, perform label-switch classification to distinguish attenuated and escalated molecular responses, and visualize results using UMAP, quadrant plots, boxplots, and pathway enrichment.
+
+## Environment setup
+```{r, warning=FALSE, message=FALSE}
 library(SwitchClass)
 library(readxl)
 library(stringr)
@@ -19,8 +35,12 @@ library(msigdbr)
 library(clusterProfiler)
 
 set.seed(1)
+```
 
-## ----fig.width=10, fig.height=5, warning=FALSE, message=FALSE-----------------
+## 1. Load and Prepare CRC Dataset
+Load the preprocessed expression matrix and associated sample metadata from the CRC plasma proteome study. The dataset includes healthy control (HC), pre-treatment (Pre), and post-treatment (Post) groups.  
+Apply quality filtering to retain proteins consistently detected across samples, followed by imputation of missing values using PhosR utilities to obtain a complete expression matrix.
+```{r, fig.width=10, fig.height=5, warning=FALSE, message=FALSE}
 data("CRC_subset")
 
 # log2 transform
@@ -61,8 +81,12 @@ p2 <- plotQC(crc.imputed, panel = "pca", grps=group, labels = labels) +
   )
 
 ggpubr::ggarrange(p1, p2, ncol=2, nrow=1, common.legend = TRUE, legend="right")
+```
 
-## ----warning=FALSE, message=FALSE---------------------------------------------
+## 2. Differential Expression Analysis
+
+Perform differential expression analysis between healthy controls and pre-treatment CRC samples using limma. Identify features showing significant fold-change and adjusted p-value thresholds.
+```{r, warning=FALSE, message=FALSE}
 
 pp <- group[group %in% c("HC","Pre")]
 design_DE <- model.matrix(~ 0 + pp)
@@ -81,8 +105,11 @@ DE.table <- DE.table[order(DE.table$adj.P.Val, DE.table$P.Value), ]
 DE.genes <- DE.table$gene[which((DE.table[, "adj.P.Val"] < 0.05) & (abs(DE.table[,"logFC"]) > 0.5849625))]
 length(DE.genes)
 
+```
 
-## ----warning=FALSE, message=FALSE---------------------------------------------
+## 3. Label-Switch Classification
+Use the SwitchClass algorithm to train random forest classifiers under two label schemes—reversal (attenuated) and persistence (escalated), to compute feature-level delta scores.
+```{r, warning=FALSE, message=FALSE}
 # Use DE genes to focus the classification
 X_bc <- crc.imputed[DE.genes, , drop = FALSE]
 
@@ -96,8 +123,11 @@ res <- SwitchClass::label_switch_classify(
 )
 delta <- res$delta
 
+```
 
-## ----warning=FALSE, message=FALSE, fig.width=12, fig.height=4-----------------
+## 4. UMAP Visualization of Feature Subsets
+Visualize sample clustering based on UMAP embeddings computed using attenuated, escalated, or all features. Consistent color mapping highlights group separation.
+```{r, warning=FALSE, message=FALSE, fig.width=12, fig.height=4}
 
 res_trip <- umap_triptych_by_delta(
   X = X_bc,
@@ -111,8 +141,11 @@ res_trip <- umap_triptych_by_delta(
 res_trip$plot
 
 
+```
 
-## ----warning=FALSE, message=FALSE, fig.width=6, fig.height=6------------------
+## 5. Quadrant Assignment and Delta–Fold-Change Scatter Plot
+Combine𝛿scores with log fold-changes to assign each feature to one of four quadrants, reflecting distinct molecular response behaviors. Plot the scatter to reveal major feature trends.
+```{r, warning=FALSE, message=FALSE, fig.width=6, fig.height=6}
 Hm <- rowMeans2(as.matrix(X_bc[, group == "HC", drop = FALSE]))
 Dm <- rowMeans2(as.matrix(X_bc[, group == "Pre", drop = FALSE]))
 lfc <- Hm - Dm   
@@ -122,8 +155,11 @@ out <- plot_delta_vs_fc(delta, lfc, delta_thresh = 0.15, label_top = 8)
 df_quad <- out$data  # tidy table with quadrants
 out$plot  # the scatter plot
 
+```
 
-## ----warning=FALSE, message=FALSE, fig.width=10, fig.height=5-----------------
+## 6. Expression Patterns of Representative Features
+Generate boxplots for selected representative features from each quadrant to illustrate characteristic expression changes across groups.
+```{r, warning=FALSE, message=FALSE, fig.width=10, fig.height=5}
 genes_order <- c("RASA4","RASA4B","SMYD5","MRPS25","BLM","CPSF6","HBB","MSL1")
 palette_crc <- c(HC = "#5AAF59", Pre = "#D3542D", Post = "#E5CA4E")
 group <- factor(group, levels = c("HC","Pre", "Post"))
@@ -139,8 +175,10 @@ p <- plot_feature_boxplots(
 )
 p
 
-
-## ----fig.width=8, fig.height=5, warning=FALSE, message=FALSE------------------
+```
+## 7. Heatmap of Quadrant-Defined Features
+Create a heatmap showing standardized expression of genes across samples, grouped by both quadrants and sample type (HC, Pre, Post).
+```{r, fig.width=8, fig.height=5, warning=FALSE, message=FALSE}
 plot_heatmap_quadrants(
   X = crc.imputed,
   group = group,
@@ -149,11 +187,15 @@ plot_heatmap_quadrants(
   palette_group = c(HC = "#5AAF59", Pre = "#D3542D", Post = "#E5CA4E")
 )
 
+```
 
-## ----fig.width=8, fig.height=6, warning=FALSE, message=FALSE------------------
+## 8. Pathway Enrichment Analysis (Reactome)
+Analysis (Reactome)
+Perform over-representation analysis using Reactome gene sets from msigdbr to identify biological pathways enriched within each quadrant. Visualize the top pathways per quadrant as -log10(p-value) barplots.
+```{r, fig.width=8, fig.height=6, warning=FALSE, message=FALSE}
 out <- enrich_reactome_quadrants(
   df = df_quad,
-  universe = rownames(discovery.cohort),
+  universe = rownames(CRC_subset$expr),
   top_terms = 5
 )
 
@@ -162,4 +204,5 @@ out$plot      # the combined 4-panel barplot
 # out$barplot_df  # tidy plotted values
     
 
+```
 
