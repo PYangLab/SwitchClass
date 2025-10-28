@@ -34,7 +34,10 @@ Install the development version from GitHub:
 
 ```r
 # install.packages("devtools")
-devtools::install_github("PYangLab/SwitchClass")
+devtools::install_github("PYangLab/SwitchClass",
+                         build_vignettes = TRUE,
+                         dependencies = TRUE)
+
 ```
 
 ## Vignette 
