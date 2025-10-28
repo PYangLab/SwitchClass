@@ -1,0 +1,10 @@
+test_that("label_switch_classify returns expected names and sizes", {
+  set.seed(1)
+  X <- matrix(rnorm(200 * 12), 200, 12, dimnames = list(paste0("f",1:200), paste0("s",1:12)))
+  y2 <- rep(c("c1","c2","c1"), each = 4)
+  y3 <- rep(c("c1","c2","c2"), each = 4)
+  res <- label_switch_classify(X, y_reverse = y2, y_persist = y3, ntimes = 3)
+  expect_true(all(c("delta","I_rev","I_per") %in% names(res)))
+  expect_equal(length(res$delta), nrow(X))
+  expect_equal(names(res$delta), rownames(X))
+})
