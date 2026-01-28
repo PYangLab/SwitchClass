@@ -54,5 +54,5 @@ browseVignettes("SwitchClass")
 
 ## Contact us
 
-If you have any enquiries, especially about performing PhosR to analyse your phosphoproteomic data, please contact di.xiao@sydney.edu.au. We are also happy to receive any suggestions and comments.
+If you have any enquiries about SwitchClass, please contact di.xiao@sydney.edu.au. We are also happy to receive any suggestions and comments.
 
