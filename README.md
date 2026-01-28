@@ -1,10 +1,10 @@
 
 # SwitchClass
 
-`SwitchClass` is a R package for quantifying and visualizing *molecular reversibility and persistence* across biological perturbations using a label-switch classification framework.  
-It provides a unified workflow for identifying *attenuated* versus *escalated* molecular features in longitudinal or comparative omics datasets.
+`SwitchClass` is an R package for quantifying and visualising *molecular reversibility and persistence* across biological perturbations using a label-switch classification framework.  
+It provides a unified workflow for identifying *baseline-aligned* versus *perturbation-aligned* molecular features in longitudinal or comparative omics datasets.
 
-The package was developed as part of the study **Dissecting Reversal and Persistence of Molecular Features via a Label-Switch Classification Framework**, which systematically maps molecular trajectories that normalize or remain dysregulated under different biological or therapeutic conditions.
+The package was developed as part of the study **Dissecting Reversal and Persistence of Molecular Features via a Label-Switch Classification Framework**, which systematically maps molecular trajectories that normalise or remain dysregulated under different biological or therapeutic conditions.
 
 ---
 
